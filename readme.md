@@ -112,6 +112,3 @@ MIT License – feel free to use and modify.
 ## 💡 Author's Note
 
 This project was built as part of my **AI Voice Agent challenge**.
-
-Do you want me to make it **LinkedIn-post friendly with a visually striking README header and intro**? That would make the screenshot far more eye-catching.
-```
