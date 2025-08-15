@@ -112,15 +112,6 @@ MIT License – feel free to use and modify.
 ## 💡 Author's Note
 
 This project was built as part of my **AI Voice Agent challenge**.
-It showcases how to combine multiple AI services into a smooth, user-friendly application.
-
----
-
-```
-
----
-
-If you want, I can also **add emoji styling, section dividers, and callouts** so that your LinkedIn screenshot pops visually. That helps it stand out in the feed.
 
 Do you want me to make it **LinkedIn-post friendly with a visually striking README header and intro**? That would make the screenshot far more eye-catching.
 ```
