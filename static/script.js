@@ -1,142 +1,128 @@
-let mediaRecorder;
-let audioChunks = [];
-let sessionId;
-let isRecording = false;
+// static/script.js
+document.addEventListener("DOMContentLoaded", () => {
+    const recordBtn = document.getElementById("recordBtn");
+    const statusDisplay = document.getElementById("statusDisplay");
+    const chatLog = document.getElementById('chat-log');
 
-// Generate or retrieve session ID from URL
-function getSessionId() {
-    const params = new URLSearchParams(window.location.search);
-    let id = params.get("session_id");
-    if (!id) {
-        id = crypto.randomUUID();
-        params.set("session_id", id);
-        window.history.replaceState({}, "", `${location.pathname}?${params}`);
-    }
-    return id;
-}
+    let isRecording = false;
+    let ws = null;
+    let audioContext;
+    let mediaStream;
+    let processor;
+    let audioQueue = [];
+    let isPlaying = false;
 
-sessionId = getSessionId();
+    const addOrUpdateMessage = (text, type) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-bubble ${type === "assistant" ? "agent" : "user"}`;
+        messageDiv.textContent = text;
+        chatLog.appendChild(messageDiv);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    };
 
-// DOM elements
-const recordBtn = document.getElementById("recordBtn");
-const recordLabel = document.getElementById("recordLabel");
-const chatArea = document.getElementById("chatContainer");
-const hiddenAudio = document.getElementById("hiddenAudio");
+    const playNextInQueue = () => {
+        if (audioQueue.length > 0) {
+            isPlaying = true;
+            const base64Audio = audioQueue.shift();
+            const audioData = Uint8Array.from(atob(base64Audio), c => c.charCodeAt(0)).buffer;
+            
+            audioContext.decodeAudioData(audioData).then(buffer => {
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                source.onended = playNextInQueue;
+                source.start();
+            }).catch(e => {
+                console.error("Error decoding audio data:", e);
+                playNextInQueue();
+            });
+        } else {
+            isPlaying = false;
+        }
+    };
 
-// Toggle recording on button click
-recordBtn.addEventListener("click", () => {
-    if (isRecording) {
-        stopRecording();
-    } else {
-        startRecording();
-    }
-});
+    const startRecording = async () => {
+        try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
 
-async function startRecording() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
+            const source = audioContext.createMediaStreamSource(mediaStream);
+            processor = audioContext.createScriptProcessor(4096, 1, 1);
+            source.connect(processor);
+            processor.connect(audioContext.destination);
+            processor.onaudioprocess = (e) => {
+                const inputData = e.inputBuffer.getChannelData(0);
+                const pcmData = new Int16Array(inputData.length);
+                for (let i = 0; i < inputData.length; i++) {
+                    pcmData[i] = Math.max(-1, Math.min(1, inputData[i])) * 32767;
+                }
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(pcmData.buffer);
+                }
+            };
 
-        mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) audioChunks.push(event.data);
-        };
+            const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+            ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
 
-        mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-            await sendAudioToServer(audioBlob);
-        };
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === "assistant") {
+                    addOrUpdateMessage(msg.text, "assistant");
+                } else if (msg.type === "final") {
+                    addOrUpdateMessage(msg.text, "user");
+                } else if (msg.type === "audio") {
+                    audioQueue.push(msg.b64);
+                    if (!isPlaying) {
+                        playNextInQueue();
+                    }
+                }
+            };
 
-        mediaRecorder.start();
-        isRecording = true;
-        updateRecordButtonUI(true);
-    } catch (error) {
-        console.error("Error accessing microphone:", error);
-        appendMessage("System", "⚠️ Unable to access microphone.");
-    }
-}
+            isRecording = true;
+            recordBtn.classList.add("recording");
+            statusDisplay.textContent = "Listening...";
+        } catch (error) {
+            console.error("Could not start recording:", error);
+            alert("Microphone access is required to use the voice agent.");
+        }
+    };
 
-function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-        mediaRecorder.stop();
+    const stopRecording = () => {
+        if (processor) processor.disconnect();
+        if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+        if (ws) ws.close();
+        
         isRecording = false;
-        updateRecordButtonUI(false);
-    }
-}
-
-function updateRecordButtonUI(recording) {
-    if (recording) {
-        recordBtn.classList.add("recording");
-        recordLabel.textContent = "Stop Recording";
-    } else {
         recordBtn.classList.remove("recording");
-        recordLabel.textContent = "Start Recording";
-    }
-}
+        statusDisplay.textContent = "Ready to chat!";
+    };
 
-function showLoading() {
-    document.getElementById("loading").style.display = "block";
-}
-
-function hideLoading() {
-    document.getElementById("loading").style.display = "none";
-}
-
-async function sendAudioToServer(audioBlob) {
-    appendMessage("You", "🎤 (voice message sent)");
-
-    const formData = new FormData();
-    formData.append("file", audioBlob, "recording.wav"); // must be "file" for FastAPI UploadFile
-    formData.append("session_id", sessionId);
-    showLoading();
-    try {
-        const response = await fetch(`/agent/chat/${sessionId}`, {
-            method: "POST",
-            body: formData
-        });
-
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Server error: ${errText}`);
+    recordBtn.addEventListener("click", () => {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
         }
-
-        const data = await response.json();
-
-        if (data.text) {
-            appendMessage("AI", data.text);
-        }
-
-        if (data.audio_url) {
-            playAudio(data.audio_url);
-        }
-
-    } catch (error) {
-        console.error("Error sending audio:", error);
-        appendMessage("System", `⚠️ Error: ${error.message}`);
-    }
-}
-
-function appendMessage(sender, text) {
-    const msg = document.createElement("div");
-
-    if (sender === "You") {
-        msg.classList.add("user-msg");
-    } else if (sender === "AI") {
-        msg.classList.add("bot-msg");
-    } else {
-        msg.classList.add("bot-msg"); // system messages look like AI
-    }
-
-    msg.textContent = text;
-    chatArea.appendChild(msg);
-    chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-
-function playAudio(url) {
-    hiddenAudio.src = url;
-    hiddenAudio.play().catch(err => {
-        console.error("Audio play error:", err);
-        appendMessage("System", "⚠️ Could not play audio.");
     });
-}
+
+    /**
+     * 🔥 New function: Send a manual message (from skill buttons / text input)
+     */
+    window.sendMessageToAgent = (msg) => {
+        if (!msg || msg.trim() === "") return;
+
+        // Show user's message
+        addOrUpdateMessage(msg, "user");
+
+        // Ensure websocket exists
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+            ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: "text", text: msg }));
+            };
+        } else {
+            ws.send(JSON.stringify({ type: "text", text: msg }));
+        }
+    };
+});
