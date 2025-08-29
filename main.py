@@ -1,7 +1,8 @@
-# main.py
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+import assemblyai as aai
+import google.generativeai as genai
 import logging
 import asyncio
 import base64
@@ -12,14 +13,16 @@ import config
 from services import stt, llm, tts
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 app = FastAPI()
 
 # Mount static files for CSS/JS
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-
 
 # 👽 Alien Persona Prompt
 ALIEN_PERSONA_PROMPT = """
@@ -37,6 +40,33 @@ async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.post("/set-keys")
+async def set_keys(request: Request):
+    """
+    Endpoint to receive API keys from the client and configure the services.
+    """
+    data = await request.json()
+    assembly_key = data.get("assemblyKey")
+    gemini_key = data.get("geminiKey")
+    murf_key = data.get("murfKey")
+
+    # Ensure all keys are provided
+    if not all([assembly_key, gemini_key, murf_key]):
+        return {"status": "error", "message": "All API keys are required."}
+
+    # Update configuration and API clients with the new keys
+    config.ASSEMBLYAI_API_KEY = assembly_key
+    aai.settings.api_key = assembly_key
+
+    config.GEMINI_API_KEY = gemini_key
+    genai.configure(api_key=gemini_key)
+
+    config.MURF_API_KEY = murf_key
+    # If tts.speak uses config.MURF_API_KEY internally, it will pick up the new value on next call.
+
+    return {"status": "success", "message": "API keys set successfully."}
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """Handles WebSocket connection for real-time transcription and voice response."""
@@ -49,13 +79,14 @@ async def websocket_endpoint(websocket: WebSocket):
     async def handle_transcript(text: str):
         """Processes the final transcript, gets LLM and TTS responses, and streams audio."""
         await websocket.send_json({"type": "final", "text": text})
+
         try:
             # 1. Get the full text response from the LLM with alien persona
             full_response, updated_history = llm.get_llm_response(
                 f"{ALIEN_PERSONA_PROMPT}\nHuman: {text}\nAlien:",
                 chat_history
             )
-            
+
             # Update history for the next turn
             chat_history.clear()
             chat_history.extend(updated_history)
@@ -65,7 +96,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # 2. Split the response into sentences
             sentences = re.split(r'(?<=[.?!])\s+', full_response.strip())
-            
+
             # 3. Process each sentence for TTS and stream audio back
             for sentence in sentences:
                 if sentence.strip():
@@ -80,7 +111,6 @@ async def websocket_endpoint(websocket: WebSocket):
         except Exception as e:
             logging.error(f"Error in LLM/TTS pipeline: {e}")
             await websocket.send_json({"type": "llm", "text": "Sorry, I encountered an error."})
-
 
     def on_final_transcript(text: str):
         logging.info(f"Final transcript received: {text}")
