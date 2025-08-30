@@ -10,7 +10,7 @@ import re
 
 # Import services and config
 import config
-from services import stt, llm, tts
+from Services import stt, llm, tts
 
 # Configure logging
 logging.basicConfig(
