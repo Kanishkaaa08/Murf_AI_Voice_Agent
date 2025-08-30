@@ -1,119 +1,118 @@
 ````markdown
-# 30 Days of Voice Agents Challenge
+# 30 Days of Voice Agents Challenge 🚀
 
-Welcome to the **30 Days of Voice Agents Challenge** repository! 🚀
+Welcome to the **30 Days of Voice Agents Challenge** repository! This project represents my journey in building an interactive, voice-activated **alien AI** called **ZORION**. ZORION listens, understands, and responds intelligently in real-time, giving users a unique conversational experience.
 
-This is my journey of building an interactive, voice-activated **alien AI** that not only speaks to you but also listens, understands, and responds intelligently. Over the past month, I've developed a conversational AI that evolves from a basic prototype into a fully functional voice agent capable of contextual conversations, real-time weather updates, and web searches. Deployed and ready for action!
+👽 **Meet ZORION**, your Alien Voice Agent from Andromeda!
 
-👽 Meet **ZORION**, your Alien Voice Agent from Andromeda!
+---
 
------
+## 🤖 **About The Project**
 
-## 🤖 About The Project
+This project is all about creating a **sophisticated, voice-powered AI agent** that interacts with users through **natural voice conversations**. It integrates multiple AI technologies and APIs, including **speech-to-text**, **large language models**, and **text-to-speech**.
 
-This project is all about creating a **sophisticated, voice-powered AI agent** that can interact with users through natural voice conversations. It’s powered by the latest AI technologies like Google’s Gemini LLM and integrates multiple APIs for **speech-to-text**, **intelligent responses**, and **text-to-speech**.
+**ZORION** isn't just another assistant; it's an **alien entity from Andromeda**, designed to add a touch of otherworldly charm while providing useful information, like the weather or web searches. The agent understands the context of conversations, making interactions feel more human-like.
 
-**ZORION** has a personality of its own — an alien entity from Andromeda that provides not only practical information (like the weather) but also brings a touch of otherworldly charm to your interactions. The voice agent is designed to understand context and respond intelligently, making each conversation feel more natural and fun.
+### Key Features 🌟
 
-This repository documents my entire development process, starting from setting up the backend to deploying a fully functional voice agent online. Each day represents a milestone, so you can follow along and see how the project evolves.
+- 🎤 **Voice-to-Voice Interaction**: Talk to ZORION, and get an immediate, spoken response.
+- 🌐 **Contextual Conversations**: ZORION understands the flow of dialogue and responds intelligently.
+- 🤖 **End-to-End AI Pipeline**: Speech-to-Text → Google Gemini → Text-to-Speech, working in harmony.
+- 🌤 **Weather Updates**: Ask ZORION for real-time weather forecasts.
+- 🔍 **Web Search**: ZORION can perform searches for you.
+- 👽 **Alien Persona**: ZORION adds fun with its unique alien personality.
+- 🖥️ **Modern UI**: A clean, intuitive interface with a one-click recording button.
+- 🛠️ **Robust Error Handling**: Graceful fallback messages when APIs fail.
+- 🚀 **Live Deployment**: ZORION is hosted on Render.com and accessible online!
 
-### Key Features
+---
 
-- 🎤 **Voice-to-Voice Interaction**: Talk to ZORION and get an immediate, spoken response, giving you a seamless, real-time conversation.
-- 🌐 **Contextual Conversations**: ZORION remembers the context of your conversation, allowing for follow-up questions and a more human-like interaction.
-- 🤖 **End-to-End AI Pipeline**: Speech-to-Text → Google Gemini → Text-to-Speech, all working together smoothly.
-- 🌤 **Weather Updates**: Ask ZORION for the latest weather forecast based on your location or any city.
-- 🔍 **Web Search**: ZORION can search the web for the most recent information, making it your personal knowledge assistant.
-- 👽 **Alien Persona**: ZORION is not just any assistant; it’s an alien entity from Andromeda with a quirky and fun personality.
-- 🖥️ **Modern UI**: A clean, intuitive web interface with a single button to start/stop voice recordings, and visual feedback for different states (e.g., thinking, recording, etc.).
-- 🛠️ **Robust Error Handling**: If something goes wrong with the APIs, ZORION has a fallback audio response to keep the conversation flowing.
-- 🚀 **Live Deployment**: ZORION is hosted on Render.com and is ready to interact with you online!
+## 🛠️ **Tech Stack**
 
------
+This project uses various technologies for both the frontend and backend:
 
-## 🛠️ Tech Stack
+### **Backend**:
+- **FastAPI**: Fast and asynchronous API framework for building backend services.
+- **Uvicorn**: ASGI server to run the FastAPI app.
+- **Python-Dotenv**: To manage environment variables securely.
+- **WebSockets**: For real-time communication between the server and the client.
 
-This project is built using **Python** for the backend and **JavaScript** for the frontend, along with several powerful APIs to handle the core functionalities:
+### **Frontend**:
+- **HTML, CSS, JavaScript**: Core technologies for the interface and client-side logic.
+- **Bootstrap 5**: For a responsive design and modern UI.
+- **MediaRecorder API**: To capture and stream audio directly from the user's microphone.
 
-- **Backend**:
-  - **FastAPI**: Asynchronous API server, built to handle multiple requests and interactions smoothly.
-  - **Uvicorn**: Fast and efficient ASGI server to run the FastAPI app.
-  - **Python-Dotenv**: For managing environment variables securely.
-  - **WebSockets**: For real-time communication between the server and the client.
+### **AI & Voice APIs**:
+- **Murf AI**: Converts text to high-quality, natural-sounding speech (TTS).
+- **AssemblyAI**: Provides real-time transcription of audio into text (STT).
+- **Google Gemini**: Powers intelligent, context-aware responses with advanced LLM.
+- **SerpAPI**: Fetches real-time search results from Google.
+- **Weather API**: Retrieves weather data for any location.
 
-- **Frontend**:
-  - **HTML, CSS, JavaScript**: For the structure, design, and client-side interactivity.
-  - **Bootstrap 5**: For a responsive and user-friendly interface.
-  - **MediaRecorder API & WebSocket API**: To record and stream audio from your microphone directly to the server.
+### **Deployment**:
+- **Render.com**: Cloud service for hosting the application.
 
-- **AI & Voice APIs**:
-  - **Murf AI**: For high-quality, natural-sounding **Text-to-Speech (TTS)**, including the ability to stream audio.
-  - **AssemblyAI**: To transcribe your voice into text with **Speech-to-Text (STT)** accuracy.
-  - **Google Gemini**: Powers the **Large Language Model (LLM)**, enabling intelligent, context-aware responses.
-  - **SerpAPI**: Retrieves **real-time search results** from Google to answer questions from the web.
-  - **Weather API**: Pulls up-to-date **weather data** for any location you ask about.
+---
 
-- **Deployment**:
-  - **Render.com**: Hosting the app and making it publicly accessible for anyone to interact with.
+## ⚙️ **Architecture Overview**
 
------
+The system is built with a **client-server architecture**, where the frontend captures voice and sends it to the backend for processing.
 
-## ⚙️ Architecture
+1. **Client** captures audio using the **MediaRecorder API** and sends it to the **FastAPI server**.
+2. The server sends the audio to **AssemblyAI** for Speech-to-Text conversion.
+3. The transcribed text is sent to **Google Gemini** for generating a response.
+4. The response is then sent to **Murf AI** for Text-to-Speech (TTS).
+5. **ZORION** responds verbally, and the conversation continues.
 
-The application is built using a **client-server** architecture, where the frontend runs in the user's browser, capturing audio and handling the UI, while the backend (FastAPI) processes everything behind the scenes. Here’s the flow of how ZORION works:
+Additionally:
+- **Weather API**: To fetch weather updates when asked.
+- **SerpAPI**: Allows ZORION to fetch answers from the web.
 
-1. **Client** captures your voice using the **MediaRecorder API** and sends it to the **FastAPI server**.
-2. The server processes the audio and sends it to **AssemblyAI** to convert it into text (Speech-to-Text).
-3. The **Google Gemini LLM** takes the transcript and generates a context-aware response.
-4. The response is sent to **Murf AI** to be converted back into speech (Text-to-Speech).
-5. **ZORION** speaks back to you, and the conversation continues.
+---
 
-ZORION also adds the ability to:
-- Get real-time **weather information** using the **Weather API**.
-- **Search the web** for information using **SerpAPI**.
+## 🚀 **Getting Started**
 
------
+### **Try the Live Agent** 🌌
 
-## 🚀 Getting Started
+ZORION is live and ready for interaction! You can access it [here](https://voice-agent-kzw7.onrender.com/).
 
-### Try the Live Agent
+To start:
+1. Click the settings icon to enter your **API keys**.
+2. Grant microphone permissions.
+3. Start chatting with ZORION!
 
-ZORION is **live** and ready for interaction! 🌌 You can access the agent here:
+### **Running Locally** 🖥️
 
-**[Live Agent](https://voice-agent-kzw7.onrender.com/)**
+To run ZORION on your local machine, follow these steps:
 
-To start, click the settings icon to enter your **API keys**, grant microphone permissions, and start chatting with ZORION!
-
-### Running the App Locally
-
-If you'd like to run this on your own machine, follow these steps:
-
-#### Prerequisites
-
+#### **Prerequisites**:
 - Python 3.8+
 - API keys for:
   - Murf AI
   - AssemblyAI
   - Google Gemini
   - SerpAPI
-  - Weather API (for weather functionality)
+  - Weather API
 
-#### Installation
+#### **Installation**:
 
 1. **Clone the repository**:
-    ```sh
+    ```bash
     git clone https://github.com/kanishkaaa08/voice-agent.git
     ```
-2. **Navigate to the appropriate project directory** (e.g., `day-29`):
-    ```sh
+
+2. **Navigate to the project directory**:
+    ```bash
     cd voice-agent
     ```
-3. **Install the required dependencies**:
-    ```sh
+
+3. **Install the dependencies**:
+    ```bash
     pip install -r requirements.txt
     ```
-4. **Create a `.env` file** in the root directory with the following API keys:
-    ```
+
+4. **Create a `.env` file** in the root directory with your API keys:
+    ```ini
     MURF_API_KEY="your_murf_api_key_here"
     ASSEMBLYAI_API_KEY="your_assemblyai_api_key_here"
     GOOGLE_API_KEY="your_google_genai_key_here"
@@ -122,58 +121,62 @@ If you'd like to run this on your own machine, follow these steps:
     ```
 
 5. **Run the FastAPI server**:
-    ```sh
+    ```bash
     uvicorn app:app --reload --port 8000
     ```
 
-6. **Open your browser** and go to `http://localhost:8000`. Grant microphone permissions and start interacting with ZORION!
+6. **Open your browser** and go to `http://localhost:8000`. Grant microphone permissions and start chatting with ZORION!
 
------
+---
 
-## 📂 Project Structure
+## 📂 **Project Structure**
 
-Here’s how the project is structured, based on the alien-inspired theme:
+Here’s how the project is structured:
 
 ````
 
 AI Voice Agent/
 ├── app.py           # Main application file handling the backend API
-├── Services/        # The brain behind ZORION’s capabilities
+├── Services/        # Core functionalities of ZORION
 │   ├── llm.py       # Handles interactions with Google Gemini LLM
-│   ├── stt.py       # Manages real-time speech-to-text
-│   └── tts.py       # Manages text-to-speech conversion
+│   ├── stt.py       # Real-time speech-to-text
+│   └── tts.py       # Text-to-speech conversion
 ├── templates/
 │   └── index.html   # Main UI for the voice agent
 ├── static/
 │   ├── script.js    # Frontend logic for recording and settings
 │   └── style.css    # UI styles
-├── requirements.txt # Lists all project dependencies for deployment
-└── .env             # Stores API keys for local development
+├── requirements.txt # Lists all project dependencies
+└── .env             # Stores API keys
 
 ```
 
------
+---
 
-## 🗓️ Project Journey: Day 1 to 29
+## 🗓️ **Project Journey: Day 1 to 29**
 
 Here’s a quick summary of the progress I made during the challenge:
 
-- **Day 01**: Laid the foundation with a basic **FastAPI server** and a simple **Bootstrap UI**.
-- **Day 02**: Integrated the **Murf AI API** to create the first endpoint for **Text-to-Speech (TTS)**.
-- **Day 03**: Built the **frontend interface** to interact with the TTS endpoint, allowing users to type text and hear it spoken.
-- **Day 04**: Developed a client-side **Echo Bot** using the **MediaRecorder API** to record and play back user audio.
-- **Day 05**: Enhanced the echo bot by implementing **server-side audio upload**, moving from client-only to a client-server model.
-- **Day 06**: Integrated the **AssemblyAI API** for **Speech-to-Text (STT)**, allowing the server to transcribe user audio.
-- **Day 07**: Created a **voice transformation bot** by chaining the STT and TTS services. The app would listen, transcribe, and speak the user's words back in a different voice.
-- **Day 08**: Introduced **intelligence** by integrating the **Google Gemini LLM**, creating an endpoint that could generate text-based responses to queries.
-- **Day 09**: Achieved a full **voice-to-voice conversational loop**. The app could now listen to a spoken question and provide a spoken answer generated by the LLM.
-- **Day 10**: Implemented **chat history** and **session management**, giving the agent a "memory" to hold context-aware conversations.
-- **Day 11**: Made the application more robust by adding **server-side** and **client-side error handling**, including a friendly fallback audio message for API failures.
-- **Day 12**: Performed a major **UI revamp**, simplifying the interface to a single, animated record button and a cleaner, more modern aesthetic.
-- **Day 13**: Focused on **documentation**, creating a comprehensive `README.md` file to explain the project's architecture, features, and setup.
-- **Day 14 - 26**: Continued with foundational work, from setting up the server and integrating AI services to giving the agent a **persona** and **web search capabilities**.
-- **Day 27**: Revamped the **UI** and implemented a **settings panel** for API key configuration directly in the browser.
-- **Day 28**: Successfully **deployed** the agent to a public cloud server, making it accessible to all.
+- **Day 01**: Laid the foundation with a basic **FastAPI server** and **Bootstrap UI**.
+- **Day 02**: Integrated the **Murf AI API** for **Text-to-Speech (TTS)**.
+- **Day 03**: Built the **frontend interface** to interact with TTS.
+- **Day 04**: Developed a client-side **Echo Bot** using **MediaRecorder API**.
+- **Day 05**: Enhanced the Echo Bot with **server-side audio upload**.
+- **Day 06**: Integrated **AssemblyAI** for **Speech-to-Text (STT)**.
+- **Day 07**: Created a **voice transformation bot** with STT and TTS.
+- **Day 08**: Integrated **Google Gemini LLM** for intelligent responses.
+- **Day 09**: Achieved a **full voice-to-voice conversational loop**.
+- **Day 10**: Implemented **chat history** and **session management**.
+- **Day 11**: Added **error handling** for server-side and client-side issues.
+- **Day 12**: Revamped UI with a **single, animated record button**.
+- **Day 13**: Focused on **documentation** and creating a clear README.
+- **Day 14 - 26**: Added **persona**, **web search**, and **weather updates**.
+- **Day 27**: Improved UI with **settings panel** for API key configuration.
+- **Day 28**: **Deployed** the agent to a cloud server for public use.
 
-This project has been an exciting ride! Let me know if you have any questions, and feel free to contribute or explore the code. Enjoy chatting with ZORION! 👽✨
+---
+
+This project has been an exciting ride! Let me know if you have any questions, and feel free to contribute or explore the code. Enjoy chatting with **ZORION**! 👽✨
+
+---
 ```
