@@ -1,8 +1,5 @@
 # services/stt.py
 import assemblyai as aai
-from fastapi import UploadFile
-import os
-from dotenv import load_dotenv
 from assemblyai.streaming.v3 import (
     StreamingClient,
     StreamingClientOptions,
@@ -15,23 +12,14 @@ from assemblyai.streaming.v3 import (
     StreamingError,
 )
 
-load_dotenv()
-
-# expects ASSEMBLYAI_API_KEY in env
-aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY") or ""
-
-
 def _on_begin(client: StreamingClient, event: BeginEvent):
     print(f"AAI session started: {event.id}")
-
 
 def _on_termination(client: StreamingClient, event: TerminationEvent):
     print(f"AAI session terminated after {event.audio_duration_seconds} s")
 
-
 def _on_error(client: StreamingClient, error: StreamingError):
     print("AAI error:", error)
-
 
 class AssemblyAIStreamingTranscriber:
     """
@@ -45,13 +33,14 @@ class AssemblyAIStreamingTranscriber:
         sample_rate: int = 16000,
         on_partial_callback=None,
         on_final_callback=None,
+        api_key: str = None
     ):
         self.on_partial_callback = on_partial_callback
         self.on_final_callback = on_final_callback
 
         self.client = StreamingClient(
             StreamingClientOptions(
-                api_key=aai.settings.api_key,
+                api_key=api_key,
                 api_host="streaming.assemblyai.com",
             )
         )
@@ -95,14 +84,3 @@ class AssemblyAIStreamingTranscriber:
 
     def close(self):
         self.client.disconnect(terminate=True)
-
-
-def transcribe_audio(audio_file: UploadFile) -> str:
-    """Transcribes audio to text using AssemblyAI."""
-    transcriber = aai.Transcriber()
-    transcript = transcriber.transcribe(audio_file.file)
-
-    if transcript.status == aai.TranscriptStatus.error or not transcript.text:
-        raise Exception(f"Transcription failed: {transcript.error or 'No speech detected'}")
-
-    return transcript.text

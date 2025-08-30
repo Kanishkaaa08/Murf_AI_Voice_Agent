@@ -1,157 +1,208 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ZORION 👽 Alien Voice Agent</title>
-  <link 
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
-    rel="stylesheet" 
-  />
-  <link rel="stylesheet" href="/static/style.css" />
-  <style>
-    /* Center the heading block */
-    .chat-header {
-      flex-direction: column;
-      text-align: center;
-      margin-bottom: 40px;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZORION 👽 Alien Voice Agent</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css" />
+    <style>
+        /* Alien/cosmic theme background */
+        body {
+            background: radial-gradient(circle at 20% 30%, #0d0d1a, #000);
+            color: #eee;
+        }
 
-    .chat-header h4 {
-      font-size: 2rem;
-      margin-bottom: 5px;
-    }
+        /* Chat container styling */
+        .chat-container {
+            background: rgba(15, 15, 40, 0.9);
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+        }
 
-    .chat-header p {
-      font-size: 1rem;
-      color: #ccc;
-    }
+        /* Header with alien theme */
+        .chat-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .chat-header h4 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        .chat-header p {
+            font-size: 1rem;
+            color: #aaa;
+        }
 
-    /* Sidebar button top-right inside container */
-    .header-actions {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
+        /* Mic button above chat input */
+        .chat-input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1rem;
+        }
 
-    /* Sidebar input spacing */
-    .offcanvas-body input {
-      margin-top: 12px;
-    }
-  </style>
+        .record-btn {
+            background: linear-gradient(45deg, #00ffcc, #0066ff);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        /* Skill buttons */
+        .skill-btn-container {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .skill-btn {
+            background: #222244;
+            color: #fff;
+        }
+
+        /* Chat log styling */
+        .chat-log {
+            background: #111133;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .status-display {
+            text-align: center;
+            color: #00ffcc;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Sidebar button */
+        .header-actions {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        /* Offcanvas input spacing */
+        .offcanvas-body input {
+            margin-top: 0.75rem;
+        }
+
+        /* Alien particles background (optional) */
+        .aliens-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #0ff;
+            border-radius: 50%;
+            animation: float 10s infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); opacity: 0.5; }
+            50% { transform: translateY(-200px) translateX(100px); opacity: 1; }
+            100% { transform: translateY(0) translateX(0); opacity: 0.5; }
+        }
+    </style>
 </head>
 <body>
-  <!-- Alien background with floating particles -->
-  <div class="aliens-bg">
-    <div class="particle particle1"></div>
-    <!-- ... other particles ... -->
-    <div class="particle particle15"></div>
-  </div>
+    <!-- Alien background particles -->
+    <div class="aliens-bg">
+        <div class="particle" style="top:10%; left:20%; animation-delay:0s;"></div>
+        <div class="particle" style="top:50%; left:70%; animation-delay:2s;"></div>
+        <div class="particle" style="top:80%; left:40%; animation-delay:4s;"></div>
+        <div class="particle" style="top:30%; left:60%; animation-delay:1s;"></div>
+        <div class="particle" style="top:60%; left:20%; animation-delay:3s;"></div>
+        <!-- Add more particles if you want -->
+    </div>
 
-  <div class="container d-flex justify-content-center align-items-center min-vh-100 position-relative">
-    <div class="chat-container position-relative">
-      
-      <!-- Sidebar Toggle Button (inside container, top-right) -->
-      <div class="header-actions">
-        <button 
-          class="btn btn-outline-light" 
-          type="button" 
-          data-bs-toggle="offcanvas" 
-          data-bs-target="#apiKeysSidebar"
-        >
-          🔑 API Keys
-        </button>
-      </div>
+    <div class="container d-flex justify-content-center align-items-center min-vh-100 position-relative">
+        <div class="chat-container">
 
-      <!-- Header -->
-      <div class="chat-header">
-        <h4>👽 ZORION</h4>
-        <p>Your Alien Voice Agent from Andromeda</p>
-      </div>
+            <!-- Sidebar Toggle Button -->
+            <div class="header-actions">
+                <button class="btn btn-outline-light" type="button" data-bs-toggle="offcanvas" data-bs-target="#apiKeysSidebar">
+                    🔑 API Keys
+                </button>
+            </div>
 
-      <!-- Chat Input -->
-      <div class="chat-input-container">
-        <button id="recordBtn" class="record-btn">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="20" 
-            height="20" 
-            fill="currentColor" 
-            class="bi bi-mic-fill" 
-            viewBox="0 0 16 16"
-          >
-            <path d="M5 3a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0V3z"/>
-            <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z"/>
-          </svg>
-        </button>
+            <!-- Header -->
+            <div class="chat-header">
+                <h4>👽 ZORION</h4>
+                <p>Your Alien Voice Agent from Andromeda</p>
+            </div>
 
-        <!-- Skill Buttons -->
-        <div class="skill-btn-container">
-          <button 
-            class="skill-btn btn btn-outline-secondary" 
-            onclick="sendSkill('weather')" 
-            disabled
-          >
-            🌦 Weather
-          </button>
-          <button 
-            class="skill-btn btn btn-outline-secondary" 
-            onclick="sendSkill('search')" 
-            disabled
-          >
-            🔍 Web Search
-          </button>
+            <!-- Mic & Skill Buttons -->
+            <div class="chat-input-container">
+                <button id="recordBtn" class="record-btn">
+                    <i class="fas fa-microphone"></i>
+                </button>
+
+                <div class="skill-btn-container">
+                    <button class="skill-btn btn btn-outline-secondary" onclick="sendSkill('weather')" disabled>🌦 Weather</button>
+                    <button class="skill-btn btn btn-outline-secondary" onclick="sendSkill('search')" disabled>🔍 Web Search</button>
+                </div>
+            </div>
+
+            <!-- Chat Log -->
+            <div id="chat-log" class="chat-log"></div>
+
+            <!-- Status -->
+            <div id="statusDisplay" class="status-display">
+                Awaiting cosmic signals...
+            </div>
         </div>
-      </div>
-
-      <!-- Chat Log -->
-      <div id="chat-log" class="chat-log"></div>
-
-      <!-- Status -->
-      <div id="statusDisplay" class="status-display">
-        Awaiting cosmic signals...
-      </div>
     </div>
-  </div>
 
-  <!-- Sidebar (Offcanvas) -->
-  <div class="offcanvas offcanvas-end" tabindex="-1" id="apiKeysSidebar">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title">🔑 Enter API Keys</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    <!-- Sidebar (Offcanvas) -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="apiKeysSidebar">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">🔑 Enter API Keys</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <input type="password" id="assemblyKey" placeholder="AssemblyAI API Key" class="form-control" />
+            <input type="password" id="geminiKey" placeholder="Gemini API Key" class="form-control" />
+            <input type="password" id="murfKey" placeholder="Murf API Key" class="form-control" />
+            <input type="password" id="serpApiKey" placeholder="SerpAPI API Key" class="form-control" />
+            <button id="saveKeysBtn" class="btn btn-primary w-100 mt-3">Save Keys</button>
+        </div>
     </div>
-    <div class="offcanvas-body">
-      <input 
-        type="password" 
-        id="assemblyKey" 
-        placeholder="AssemblyAI API Key" 
-        class="form-control" 
-      />
-      <input 
-        type="password" 
-        id="geminiKey" 
-        placeholder="Gemini API Key" 
-        class="form-control" 
-      />
-      <input 
-        type="password" 
-        id="murfKey" 
-        placeholder="Murf API Key" 
-        class="form-control" 
-      />
-      <button id="saveKeysBtn" class="btn btn-primary w-100 mt-3">Save Keys</button>
-    </div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/static/script.js"></script>
-  <script>
-    function sendSkill(skill) {
-      let msg = "";
-      if (skill === "weather") msg = "What's the weather in Bengaluru right now?";
-      if (skill === "search") msg = "Search the web for latest news on AI.";
-      window.sendMessageToAgent(msg);
-    }
-  </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/script.js"></script>
+    <script>
+        function sendSkill(skill) {
+            let msg = "";
+            if (skill === "weather") msg = "What's the weather in Bengaluru right now?";
+            if (skill === "search") msg = "Search the web for latest news on AI.";
+            window.sendMessageToAgent(msg);
+        }
+    </script>
 </body>
 </html>

@@ -1,101 +1,147 @@
-let ws;
-let mediaRecorder;
-let audioChunks = [];
+// static/script.js
+document.addEventListener("DOMContentLoaded", () => {
+    const recordBtn = document.getElementById("recordBtn");
+    const statusDisplay = document.getElementById("statusDisplay");
+    const chatLog = document.getElementById("chat-log");
+    const saveKeysBtn = document.getElementById("saveKeysBtn");
 
-// Save API keys
-document.getElementById("saveKeysBtn").addEventListener("click", async () => {
-  const assemblyKey = document.getElementById("assemblyKey").value;
-  const geminiKey = document.getElementById("geminiKey").value;
-  const murfKey = document.getElementById("murfKey").value;
+    let isRecording = false;
+    let ws = null;
+    let audioContext;
+    let mediaStream;
+    let processor;
+    let audioQueue = [];
+    let isPlaying = false;
 
-  const response = await fetch("/set-keys", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ assemblyKey, geminiKey, murfKey }),
-  });
+    // Load saved API keys
+    const loadSettings = () => {
+        document.getElementById("murfKey").value = localStorage.getItem("murfApiKey") || "";
+        document.getElementById("assemblyKey").value = localStorage.getItem("assemblyAiApiKey") || "";
+        document.getElementById("geminiKey").value = localStorage.getItem("geminiApiKey") || "";
+        document.getElementById("serpApiKey").value = localStorage.getItem("serpApiKey") || "";
+    };
+    loadSettings();
 
-  const result = await response.json();
-  alert(result.message);
+    // Save API keys
+    saveKeysBtn.addEventListener("click", () => {
+        localStorage.setItem("murfApiKey", document.getElementById("murfKey").value);
+        localStorage.setItem("assemblyAiApiKey", document.getElementById("assemblyKey").value);
+        localStorage.setItem("geminiApiKey", document.getElementById("geminiKey").value);
+        localStorage.setItem("serpApiKey", document.getElementById("serpApiKey").value);
+        alert("API keys saved!");
+    });
 
-  if (result.status === "success") {
-    document.querySelectorAll(".skill-btn").forEach(btn => btn.disabled = false);
-  }
+    // Add messages to chat
+    const addMessage = (text, type) => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = type === "assistant" ? 'message assistant' : 'message user';
+        msgDiv.textContent = text;
+        chatLog.appendChild(msgDiv);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    };
+
+    // Play audio queue
+    const playNextAudio = () => {
+        if (audioQueue.length === 0) {
+            isPlaying = false;
+            return;
+        }
+        isPlaying = true;
+        const base64Audio = audioQueue.shift();
+        const audioData = Uint8Array.from(atob(base64Audio), c => c.charCodeAt(0)).buffer;
+
+        audioContext.decodeAudioData(audioData).then(buffer => {
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioContext.destination);
+            source.onended = playNextAudio;
+            source.start();
+        }).catch(err => {
+            console.error("Audio decode error:", err);
+            playNextAudio();
+        });
+    };
+
+    // Start recording
+    const startRecording = async () => {
+        const apiKeys = {
+            murf: localStorage.getItem("murfApiKey"),
+            assemblyai: localStorage.getItem("assemblyAiApiKey"),
+            gemini: localStorage.getItem("geminiApiKey"),
+            serpapi: localStorage.getItem("serpApiKey")
+        };
+
+        if (!apiKeys.murf || !apiKeys.assemblyai || !apiKeys.gemini || !apiKeys.serpapi) {
+            alert("Please set all API keys in the sidebar.");
+            return;
+        }
+
+        try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            await audioContext.resume(); // Important to resume context on user gesture
+
+            const source = audioContext.createMediaStreamSource(mediaStream);
+            processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+            source.connect(processor);
+            processor.connect(audioContext.destination);
+
+            processor.onaudioprocess = (e) => {
+                if (!isRecording) return;
+                const input = e.inputBuffer.getChannelData(0);
+                const pcmData = new Int16Array(input.length);
+                for (let i = 0; i < input.length; i++) {
+                    pcmData[i] = Math.max(-1, Math.min(1, input[i])) * 32767;
+                }
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(pcmData.buffer);
+                }
+            };
+
+            const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+            ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: "config", keys: apiKeys }));
+                statusDisplay.textContent = "Listening...";
+            };
+
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === "assistant") addMessage(msg.text, "assistant");
+                if (msg.type === "final") addMessage(msg.text, "user");
+                if (msg.type === "audio") {
+                    audioQueue.push(msg.b64);
+                    if (!isPlaying) playNextAudio();
+                }
+            };
+
+            ws.onerror = (e) => console.error("WebSocket error:", e);
+
+            isRecording = true;
+            recordBtn.classList.add("recording");
+        } catch (err) {
+            console.error("Recording failed:", err);
+            alert("Please allow microphone access to use the voice agent.");
+        }
+    };
+
+    // Stop recording
+    const stopRecording = () => {
+        if (processor) processor.disconnect();
+        if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+        if (ws) ws.close();
+
+        isRecording = false;
+        recordBtn.classList.remove("recording");
+        statusDisplay.textContent = "Ready to chat!";
+    };
+
+    // Mic button click
+    recordBtn.addEventListener("click", () => {
+        if (isRecording) stopRecording();
+        else startRecording();
+    });
 });
-
-// Setup WebSocket connection
-function initWebSocket() {
-  ws = new WebSocket(`ws://${window.location.host}/ws`);
-
-  ws.onopen = () => {
-    console.log("✅ WebSocket connected");
-    document.getElementById("statusDisplay").innerText = "Connected to ZORION...";
-  };
-
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-
-    if (data.type === "final") {
-      addMessage("🗣 You", data.text);
-    } else if (data.type === "assistant") {
-      addMessage("👽 ZORION", data.text);
-    } else if (data.type === "audio") {
-      playAudio(data.b64);
-    } else if (data.type === "llm") {
-      addMessage("⚠️ Error", data.text);
-    }
-  };
-
-  ws.onclose = () => {
-    console.log("❌ WebSocket closed");
-    document.getElementById("statusDisplay").innerText = "Connection lost...";
-  };
-}
-
-// Start/stop recording
-document.getElementById("recordBtn").addEventListener("click", async () => {
-  if (mediaRecorder && mediaRecorder.state === "recording") {
-    mediaRecorder.stop();
-    document.getElementById("recordBtn").classList.remove("recording");
-    return;
-  }
-
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
-
-  mediaRecorder.ondataavailable = (event) => {
-    if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
-      event.data.arrayBuffer().then((buffer) => {
-        ws.send(buffer);
-      });
-    }
-  };
-
-  mediaRecorder.start(250); // send audio in chunks
-  document.getElementById("recordBtn").classList.add("recording");
-});
-
-// Play received audio
-function playAudio(b64) {
-  const audio = new Audio("data:audio/wav;base64," + b64);
-  audio.play();
-}
-
-// Add message to chat log
-function addMessage(sender, text) {
-  const chatLog = document.getElementById("chat-log");
-  const messageDiv = document.createElement("div");
-  messageDiv.className = "chat-message";
-
-  messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
-  chatLog.appendChild(messageDiv);
-  chatLog.scrollTop = chatLog.scrollHeight;
-}
-
-// Expose to window for skill buttons
-window.sendMessageToAgent = function (msg) {
-  addMessage("🗣 You", msg);
-  ws.send(new TextEncoder().encode(msg));
-};
-
-// Init
-initWebSocket();
