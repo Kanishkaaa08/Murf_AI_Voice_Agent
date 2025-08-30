@@ -1,4 +1,3 @@
-````markdown
 # 30 Days of Voice Agents Challenge 🚀
 
 Welcome to the **30 Days of Voice Agents Challenge** repository! This project represents my journey in building an interactive, voice-activated **alien AI** called **ZORION**. ZORION listens, understands, and responds intelligently in real-time, giving users a unique conversational experience.
@@ -179,4 +178,3 @@ Here’s a quick summary of the progress I made during the challenge:
 This project has been an exciting ride! Let me know if you have any questions, and feel free to contribute or explore the code. Enjoy chatting with **ZORION**! 👽✨
 
 ---
-```
