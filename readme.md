@@ -148,8 +148,6 @@ AI Voice Agent/
 ├── requirements.txt # Lists all project dependencies
 └── .env             # Stores API keys
 
-```
-
 ---
 
 ## 🗓️ **Project Journey: Day 1 to 29**
