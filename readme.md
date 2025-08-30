@@ -121,7 +121,7 @@ To run ZORION on your local machine, follow these steps:
 
 5. **Run the FastAPI server**:
     ```bash
-    uvicorn app:app --reload --port 8000
+    uvicorn main:app --reload --port 8000
     ```
 
 6. **Open your browser** and go to `http://localhost:8000`. Grant microphone permissions and start chatting with ZORION!
